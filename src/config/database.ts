@@ -27,7 +27,17 @@ export function initializeDatabase(): void {
       stockQuantity INTEGER NOT NULL,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
-    )
+    );
+
+    CREATE TABLE IF NOT EXISTS users (
+      userId TEXT PRIMARY KEY,
+      username TEXT NOT NULL UNIQUE,
+      email TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'user',
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
   `);
 }
 

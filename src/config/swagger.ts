@@ -211,6 +211,12 @@ const options = {
         },
       },
       securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'JWT Bearer token for API authentication. Obtain via /auth/login or /auth/register endpoints.',
+        },
         requestId: {
           type: 'apiKey',
           in: 'header',
@@ -219,15 +225,23 @@ const options = {
         },
       },
     },
-    security: [],
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
     tags: [
       {
+        name: 'Authentication',
+        description: 'User registration and login operations',
+      },
+      {
         name: 'Products',
-        description: 'Product management operations',
+        description: 'Product management operations (requires authentication)',
       },
       {
         name: 'Health',
-        description: 'Service health check',
+        description: 'Service health check (no authentication required)',
       },
     ],
   },

@@ -3,7 +3,9 @@ import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger';
 import productRoutes from './routes/products';
+import authRoutes from './routes/auth';
 import { attachRequestId } from './middleware/validation';
+import { authenticateToken } from './middleware/auth';
 import { ApiResponse } from './types';
 
 const app: Application = express();
@@ -74,7 +76,8 @@ app.get('/health', (req: Request, res: Response): void => {
 });
 
 // Routes
-app.use('/products', productRoutes);
+app.use('/auth', authRoutes);
+app.use('/products', authenticateToken, productRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response): void => {

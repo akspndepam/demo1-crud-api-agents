@@ -6,6 +6,8 @@ import { initializeDatabase, closeDatabase } from '../src/config/database';
 import { describe, it, beforeEach, beforeAll, afterAll, expect } from '@jest/globals';
 
 describe('Product CRUD API', (): void => {
+  let authToken: string;
+
   beforeAll((): void => {
     initializeDatabase();
   });
@@ -14,8 +16,21 @@ describe('Product CRUD API', (): void => {
     closeDatabase();
   });
 
-  beforeEach((): void => {
+  beforeEach(async (): Promise<void> => {
     ProductRepository.resetData();
+    
+    // Register and login a test user
+    const testUser = {
+      username: `testuser_${Date.now()}`,
+      email: `test_${Date.now()}@example.com`,
+      password: 'testPassword123',
+    };
+
+    const registerResponse = await request(app)
+      .post('/auth/register')
+      .send(testUser);
+
+    authToken = registerResponse.body.data.token;
   });
 
   // ============================================
@@ -35,6 +50,7 @@ describe('Product CRUD API', (): void => {
 
       const response = await request(app)
         .post('/products')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(productData)
         .expect(201);
 
@@ -58,6 +74,7 @@ describe('Product CRUD API', (): void => {
 
       const response = await request(app)
         .post('/products')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(productData)
         .expect(400);
 
@@ -78,6 +95,7 @@ describe('Product CRUD API', (): void => {
 
       const response = await request(app)
         .post('/products')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(productData)
         .expect(400);
 
@@ -97,6 +115,7 @@ describe('Product CRUD API', (): void => {
 
       const response = await request(app)
         .post('/products')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(productData)
         .expect(400);
 
@@ -123,6 +142,7 @@ describe('Product CRUD API', (): void => {
 
       const response = await request(app)
         .post('/products')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(productData);
 
       productId = response.body.data.productId;
@@ -132,6 +152,7 @@ describe('Product CRUD API', (): void => {
     it('should retrieve a product by valid ID', async (): Promise<void> => {
       const response = await request(app)
         .get(`/products/${productId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -147,6 +168,7 @@ describe('Product CRUD API', (): void => {
       const nonExistentId = uuidv4();
       const response = await request(app)
         .get(`/products/${nonExistentId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
 
       expect(response.body.success).toBe(false);
@@ -159,6 +181,7 @@ describe('Product CRUD API', (): void => {
     it('should fail with invalid ID format', async (): Promise<void> => {
       const response = await request(app)
         .get('/products/invalid-id-that-doesnt-exist-xyz')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(400);
 
       expect(response.body.success).toBe(false);
@@ -169,6 +192,7 @@ describe('Product CRUD API', (): void => {
     it('should retrieve all products when accessing base path', async (): Promise<void> => {
       const response = await request(app)
         .get('/products/')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -199,11 +223,12 @@ describe('Product CRUD API', (): void => {
         stockQuantity: 500,
       };
 
-      await request(app).post('/products').send(productData1);
-      await request(app).post('/products').send(productData2);
+      await request(app).post('/products').set('Authorization', `Bearer ${authToken}`).send(productData1);
+      await request(app).post('/products').set('Authorization', `Bearer ${authToken}`).send(productData2);
 
       const response = await request(app)
         .get('/products')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -217,6 +242,7 @@ describe('Product CRUD API', (): void => {
     it('should retrieve empty array when no products exist', async (): Promise<void> => {
       const response = await request(app)
         .get('/products')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -228,6 +254,7 @@ describe('Product CRUD API', (): void => {
     it('should handle GET request with query parameters gracefully', async (): Promise<void> => {
       const response = await request(app)
         .get('/products?page=1&limit=10')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -244,10 +271,11 @@ describe('Product CRUD API', (): void => {
         stockQuantity: 100,
       };
 
-      await request(app).post('/products').send(productData);
+      await request(app).post('/products').set('Authorization', `Bearer ${authToken}`).send(productData);
 
       const response = await request(app)
         .get('/products?filter=null')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -273,6 +301,7 @@ describe('Product CRUD API', (): void => {
 
       const response = await request(app)
         .post('/products')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(productData);
 
       productId = response.body.data.productId;
@@ -288,6 +317,7 @@ describe('Product CRUD API', (): void => {
 
       const response = await request(app)
         .put(`/products/${productId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(200);
 
@@ -309,6 +339,7 @@ describe('Product CRUD API', (): void => {
 
       const response = await request(app)
         .put(`/products/${nonExistentId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(404);
 
@@ -326,6 +357,7 @@ describe('Product CRUD API', (): void => {
 
       const response = await request(app)
         .put(`/products/${productId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(400);
 
@@ -342,6 +374,7 @@ describe('Product CRUD API', (): void => {
 
       const response = await request(app)
         .put(`/products/${productId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(400);
 
@@ -368,6 +401,7 @@ describe('Product CRUD API', (): void => {
 
       const response = await request(app)
         .post('/products')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(productData);
 
       productId = response.body.data.productId;
@@ -377,6 +411,7 @@ describe('Product CRUD API', (): void => {
     it('should delete a product by valid ID', async (): Promise<void> => {
       const response = await request(app)
         .delete(`/products/${productId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -387,6 +422,7 @@ describe('Product CRUD API', (): void => {
       // Verify product is deleted
       const getResponse = await request(app)
         .get(`/products/${productId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
 
       expect(getResponse.body.success).toBe(false);
@@ -397,6 +433,7 @@ describe('Product CRUD API', (): void => {
       const nonExistentId = uuidv4();
       const response = await request(app)
         .delete(`/products/${nonExistentId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
 
       expect(response.body.success).toBe(false);
@@ -408,6 +445,7 @@ describe('Product CRUD API', (): void => {
     it('should fail with invalid ID format during deletion', async (): Promise<void> => {
       const response = await request(app)
         .delete('/products/invalid-id-that-doesnt-exist-xyz')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(400);
 
       expect(response.body.success).toBe(false);
@@ -418,6 +456,7 @@ describe('Product CRUD API', (): void => {
     it('should fail when trying to delete with null ID', async (): Promise<void> => {
       const response = await request(app)
         .delete('/products/')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
 
       expect(response.body.success).toBe(false);

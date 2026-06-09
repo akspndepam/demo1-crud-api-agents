@@ -15,9 +15,11 @@ const productRepository = new ProductRepository();
  * /products:
  *   post:
  *     summary: Create a new product
- *     description: Creates a new product with the provided details. Returns the created product with auto-generated productId and timestamps.
+ *     description: Creates a new product with the provided details. Returns the created product with auto-generated productId and timestamps. Requires authentication.
  *     tags:
  *       - Products
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -66,25 +68,12 @@ const productRepository = new ProductRepository();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             examples:
- *               missingField:
- *                 value:
- *                   success: false
- *                   error:
- *                     errorCode: "MISSING_REQUIRED_FIELD"
- *                     message: "name is required"
- *                     field: "name"
- *                   timestamp: "2026-06-09T10:30:00.000Z"
- *                   requestId: "550e8400-e29b-41d4-a716-446655440001"
- *               invalidPrice:
- *                 value:
- *                   success: false
- *                   error:
- *                     errorCode: "INVALID_PARAMETER_FORMAT"
- *                     message: "price must have a maximum of 2 decimal places"
- *                     field: "price"
- *                   timestamp: "2026-06-09T10:30:00.000Z"
- *                   requestId: "550e8400-e29b-41d4-a716-446655440001"
+ *       '401':
+ *         description: Unauthorized - missing or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       '500':
  *         description: Internal server error
  *         content:
@@ -129,9 +118,11 @@ router.post('/', validateProductCreation, async (req: Request, res: Response): P
  * /products/{id}:
  *   get:
  *     summary: Retrieve a product by ID
- *     description: Fetches a single product by its unique UUID identifier.
+ *     description: Fetches a single product by its unique UUID identifier. Requires authentication.
  *     tags:
  *       - Products
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -174,26 +165,18 @@ router.post('/', validateProductCreation, async (req: Request, res: Response): P
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               success: false
- *               error:
- *                 errorCode: "INVALID_PARAMETER_FORMAT"
- *                 message: "Invalid product ID format"
- *               timestamp: "2026-06-09T10:30:00.000Z"
- *               requestId: "550e8400-e29b-41d4-a716-446655440001"
+ *       '401':
+ *         description: Unauthorized - missing or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       '404':
  *         description: Product not found
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               success: false
- *               error:
- *                 errorCode: "PRODUCT_NOT_FOUND"
- *                 message: "Product not found"
- *               timestamp: "2026-06-09T10:30:00.000Z"
- *               requestId: "550e8400-e29b-41d4-a716-446655440001"
  *       '500':
  *         description: Internal server error
  *         content:
@@ -255,9 +238,11 @@ router.get('/:id', validateProductId, async (req: Request, res: Response): Promi
  * /products:
  *   get:
  *     summary: Retrieve all products
- *     description: Fetches a list of all products in the system.
+ *     description: Fetches a list of all products in the system. Requires authentication.
  *     tags:
  *       - Products
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       '200':
  *         description: Products successfully retrieved
@@ -272,35 +257,12 @@ router.get('/:id', validateProductId, async (req: Request, res: Response): Promi
  *                       type: array
  *                       items:
  *                         $ref: '#/components/schemas/Product'
- *             examples:
- *               success:
- *                 value:
- *                   success: true
- *                   data:
- *                     - productId: "550e8400-e29b-41d4-a716-446655440000"
- *                       name: "Wireless Headphones"
- *                       description: "High-quality wireless headphones with noise cancellation"
- *                       price: 99.99
- *                       category: "Electronics"
- *                       stockQuantity: 150
- *                       createdAt: "2026-06-09T10:30:00.000Z"
- *                       updatedAt: "2026-06-09T10:30:00.000Z"
- *                     - productId: "550e8400-e29b-41d4-a716-446655440001"
- *                       name: "USB-C Cable"
- *                       description: "High-speed USB-C charging and data cable"
- *                       price: 19.99
- *                       category: "Accessories"
- *                       stockQuantity: 500
- *                       createdAt: "2026-06-09T11:00:00.000Z"
- *                       updatedAt: "2026-06-09T11:00:00.000Z"
- *                   timestamp: "2026-06-09T11:30:00.000Z"
- *                   requestId: "550e8400-e29b-41d4-a716-446655440002"
- *               empty:
- *                 value:
- *                   success: true
- *                   data: []
- *                   timestamp: "2026-06-09T11:30:00.000Z"
- *                   requestId: "550e8400-e29b-41d4-a716-446655440002"
+ *       '401':
+ *         description: Unauthorized - missing or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       '500':
  *         description: Internal server error
  *         content:
@@ -345,9 +307,11 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
  * /products/{id}:
  *   put:
  *     summary: Update a product by ID
- *     description: Updates an existing product with partial or full data. All fields are optional for partial updates.
+ *     description: Updates an existing product with partial or full data. All fields are optional for partial updates. Requires authentication.
  *     tags:
  *       - Products
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -389,23 +353,14 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
  *                   properties:
  *                     data:
  *                       $ref: '#/components/schemas/Product'
- *             examples:
- *               success:
- *                 value:
- *                   success: true
- *                   data:
- *                     productId: "550e8400-e29b-41d4-a716-446655440000"
- *                     name: "Premium Wireless Headphones"
- *                     description: "Updated description with enhanced features"
- *                     price: 129.99
- *                     category: "Premium Electronics"
- *                     stockQuantity: 200
- *                     createdAt: "2026-06-09T10:30:00.000Z"
- *                     updatedAt: "2026-06-09T12:00:00.000Z"
- *                   timestamp: "2026-06-09T12:00:00.000Z"
- *                   requestId: "550e8400-e29b-41d4-a716-446655440003"
  *       '400':
  *         description: Validation error - invalid input data or invalid product ID format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '401':
+ *         description: Unauthorized - missing or invalid token
  *         content:
  *           application/json:
  *             schema:
@@ -482,9 +437,11 @@ router.put(
  * /products/{id}:
  *   delete:
  *     summary: Delete a product by ID
- *     description: Permanently deletes a product from the system by its UUID identifier.
+ *     description: Permanently deletes a product from the system by its UUID identifier. Requires authentication.
  *     tags:
  *       - Products
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -509,16 +466,14 @@ router.put(
  *                       properties:
  *                         message:
  *                           type: string
- *             examples:
- *               success:
- *                 value:
- *                   success: true
- *                   data:
- *                     message: "Product deleted successfully"
- *                   timestamp: "2026-06-09T12:15:00.000Z"
- *                   requestId: "550e8400-e29b-41d4-a716-446655440004"
  *       '400':
  *         description: Invalid product ID format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '401':
+ *         description: Unauthorized - missing or invalid token
  *         content:
  *           application/json:
  *             schema:
