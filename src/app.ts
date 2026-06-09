@@ -1,9 +1,13 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
+import helmet from 'helmet';
 import productRoutes from './routes/products';
 import { attachRequestId } from './middleware/validation';
 import { ApiResponse } from './types';
 
 const app: Application = express();
+
+// Security middleware
+app.use(helmet());
 
 // Middleware
 app.use(express.json());
@@ -11,8 +15,7 @@ app.use(attachRequestId);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response): void => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const requestId = (req as any).requestId as string;
+  const requestId = req.requestId;
   const response: ApiResponse<{ status: string }> = {
     success: true,
     data: { status: 'healthy' },
@@ -28,8 +31,7 @@ app.use('/products', productRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response): void => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const requestId = (req as any).requestId as string;
+  const requestId = req.requestId;
   const response: ApiResponse<null> = {
     success: false,
     error: {
@@ -45,8 +47,9 @@ app.use((req: Request, res: Response): void => {
 
 // Error handler
 app.use((err: Error, req: Request, res: Response, _next: NextFunction): void => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const requestId = (req as any).requestId as string;
+  const requestId = req.requestId;
+  console.error(`[${requestId}] Unhandled error:`, err);
+  
   const response: ApiResponse<null> = {
     success: false,
     error: {

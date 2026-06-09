@@ -1,29 +1,38 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApiResponse } from '../types';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, validate as validateUUID } from 'uuid';
 
 export const generateRequestId = (): string => uuidv4();
 
 export const validateProductCreation = (req: Request, res: Response, next: NextFunction): void => {
   const { name, description, price, category, stockQuantity } = req.body;
   const errors: string[] = [];
+  const requestId = req.requestId;
 
   if (!name || typeof name !== 'string' || name.trim().length === 0) {
     errors.push('Name is required and must be a non-empty string');
+  } else if (name.length > 255) {
+    errors.push('Name must not exceed 255 characters');
   }
 
   if (!description || typeof description !== 'string' || description.trim().length === 0) {
     errors.push('Description is required and must be a non-empty string');
+  } else if (description.length > 1000) {
+    errors.push('Description must not exceed 1000 characters');
   }
 
   if (price === undefined || price === null) {
     errors.push('Price is required');
   } else if (typeof price !== 'number' || price < 0) {
     errors.push('Price must be a non-negative number');
+  } else if (!/^\d+(\.\d{1,2})?$/.test(price.toString())) {
+    errors.push('Price must have at most 2 decimal places');
   }
 
   if (!category || typeof category !== 'string' || category.trim().length === 0) {
     errors.push('Category is required and must be a non-empty string');
+  } else if (category.length > 100) {
+    errors.push('Category must not exceed 100 characters');
   }
 
   if (stockQuantity === undefined || stockQuantity === null) {
@@ -33,7 +42,6 @@ export const validateProductCreation = (req: Request, res: Response, next: NextF
   }
 
   if (errors.length > 0) {
-    const requestId = generateRequestId();
     const response: ApiResponse<null> = {
       success: false,
       error: {
@@ -53,28 +61,37 @@ export const validateProductCreation = (req: Request, res: Response, next: NextF
 export const validateProductUpdate = (req: Request, res: Response, next: NextFunction): void => {
   const { name, description, price, category, stockQuantity } = req.body;
   const errors: string[] = [];
+  const requestId = req.requestId;
 
   if (name !== undefined) {
     if (typeof name !== 'string' || name.trim().length === 0) {
       errors.push('Name must be a non-empty string');
+    } else if (name.length > 255) {
+      errors.push('Name must not exceed 255 characters');
     }
   }
 
   if (description !== undefined) {
     if (typeof description !== 'string' || description.trim().length === 0) {
       errors.push('Description must be a non-empty string');
+    } else if (description.length > 1000) {
+      errors.push('Description must not exceed 1000 characters');
     }
   }
 
   if (price !== undefined) {
     if (typeof price !== 'number' || price < 0) {
       errors.push('Price must be a non-negative number');
+    } else if (!/^\d+(\.\d{1,2})?$/.test(price.toString())) {
+      errors.push('Price must have at most 2 decimal places');
     }
   }
 
   if (category !== undefined) {
     if (typeof category !== 'string' || category.trim().length === 0) {
       errors.push('Category must be a non-empty string');
+    } else if (category.length > 100) {
+      errors.push('Category must not exceed 100 characters');
     }
   }
 
@@ -85,7 +102,6 @@ export const validateProductUpdate = (req: Request, res: Response, next: NextFun
   }
 
   if (errors.length > 0) {
-    const requestId = generateRequestId();
     const response: ApiResponse<null> = {
       success: false,
       error: {
@@ -104,14 +120,30 @@ export const validateProductUpdate = (req: Request, res: Response, next: NextFun
 
 export const validateProductId = (req: Request, res: Response, next: NextFunction): void => {
   const { id } = req.params;
+  const requestId = req.requestId;
 
   if (!id || typeof id !== 'string' || id.trim().length === 0) {
-    const requestId = generateRequestId();
     const response: ApiResponse<null> = {
       success: false,
       error: {
         errorCode: 'INVALID_PARAMETER_FORMAT',
-        message: 'Product ID must be a valid non-empty string',
+        message: 'Product ID must be a valid UUID',
+        field: 'id',
+      },
+      timestamp: new Date().toISOString(),
+      requestId,
+    };
+    res.status(400).json(response);
+    return;
+  }
+
+  // Validate UUID format
+  if (!validateUUID(id)) {
+    const response: ApiResponse<null> = {
+      success: false,
+      error: {
+        errorCode: 'INVALID_PARAMETER_FORMAT',
+        message: 'Product ID must be a valid UUID format',
         field: 'id',
       },
       timestamp: new Date().toISOString(),

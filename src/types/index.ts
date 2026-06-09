@@ -50,3 +50,12 @@ export interface PaginatedResponse<T> {
 export interface RequestWithRequestId {
   requestId: string;
 }
+
+// Extend Express Request interface with custom properties using declaration merging
+declare global {
+  namespace Express {
+    interface Request {
+      requestId: string;
+    }
+  }
+}

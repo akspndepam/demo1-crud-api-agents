@@ -1,4 +1,5 @@
 import request from 'supertest';
+import { v4 as uuidv4 } from 'uuid';
 import app from '../src/app';
 import { ProductRepository } from '../src/dal/ProductRepository';
 import { initializeDatabase, closeDatabase } from '../src/config/database';
@@ -143,8 +144,9 @@ describe('Product CRUD API', (): void => {
 
     // Negative test - non-existent product
     it('should return 404 for non-existent product ID', async (): Promise<void> => {
+      const nonExistentId = uuidv4();
       const response = await request(app)
-        .get('/products/non-existent-id-12345')
+        .get(`/products/${nonExistentId}`)
         .expect(404);
 
       expect(response.body.success).toBe(false);
@@ -153,14 +155,14 @@ describe('Product CRUD API', (): void => {
       expect(response.body.error.message).toBe('Product not found');
     });
 
-    // Invalid input test - invalid ID format (non-existent product)
+    // Invalid input test - invalid ID format
     it('should fail with invalid ID format', async (): Promise<void> => {
       const response = await request(app)
         .get('/products/invalid-id-that-doesnt-exist-xyz')
-        .expect(404);
+        .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.errorCode).toBe('PRODUCT_NOT_FOUND');
+      expect(response.body.error.errorCode).toBe('INVALID_PARAMETER_FORMAT');
     });
 
     // Null input test - accessing with just the base path
@@ -299,13 +301,14 @@ describe('Product CRUD API', (): void => {
 
     // Negative test - non-existent product
     it('should fail to update a non-existent product', async (): Promise<void> => {
+      const nonExistentId = uuidv4();
       const updateData = {
         name: 'Updated Product',
         price: 99.99,
       };
 
       const response = await request(app)
-        .put('/products/non-existent-id')
+        .put(`/products/${nonExistentId}`)
         .send(updateData)
         .expect(404);
 
@@ -391,8 +394,9 @@ describe('Product CRUD API', (): void => {
 
     // Negative test - non-existent product
     it('should fail to delete a non-existent product', async (): Promise<void> => {
+      const nonExistentId = uuidv4();
       const response = await request(app)
-        .delete('/products/non-existent-id')
+        .delete(`/products/${nonExistentId}`)
         .expect(404);
 
       expect(response.body.success).toBe(false);
@@ -400,14 +404,14 @@ describe('Product CRUD API', (): void => {
       expect(response.body.error.message).toBe('Product not found');
     });
 
-    // Invalid input test - invalid ID format (non-existent product)
+    // Invalid input test - invalid ID format
     it('should fail with invalid ID format during deletion', async (): Promise<void> => {
       const response = await request(app)
         .delete('/products/invalid-id-that-doesnt-exist-xyz')
-        .expect(404);
+        .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.errorCode).toBe('PRODUCT_NOT_FOUND');
+      expect(response.body.error.errorCode).toBe('INVALID_PARAMETER_FORMAT');
     });
 
     // Null input test

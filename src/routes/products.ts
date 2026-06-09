@@ -16,8 +16,7 @@ const productRepository = new ProductRepository();
  */
 router.post('/', validateProductCreation, async (req: Request, res: Response): Promise<void> => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const requestId = (req as any).requestId as string;
+    const requestId = req.requestId;
     const product = await productRepository.create(req.body);
 
     const response: ApiResponse<typeof product> = {
@@ -28,14 +27,16 @@ router.post('/', validateProductCreation, async (req: Request, res: Response): P
     };
 
     res.status(201).json(response);
-  } catch {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const requestId = (req as any).requestId as string;
+  } catch (error) {
+    const requestId = req.requestId;
+    console.error(`[${requestId}] Error creating product:`, error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create product';
     const response: ApiResponse<null> = {
       success: false,
       error: {
         errorCode: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to create product',
+        message: errorMessage,
       },
       timestamp: new Date().toISOString(),
       requestId,
@@ -51,8 +52,7 @@ router.post('/', validateProductCreation, async (req: Request, res: Response): P
  */
 router.get('/:id', validateProductId, async (req: Request, res: Response): Promise<void> => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const requestId = (req as any).requestId as string;
+    const requestId = req.requestId;
     const { id } = req.params as { id: string };
 
     const product = await productRepository.getById(id);
@@ -80,14 +80,16 @@ router.get('/:id', validateProductId, async (req: Request, res: Response): Promi
     };
 
     res.status(200).json(response);
-  } catch {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const requestId = (req as any).requestId as string;
+  } catch (error) {
+    const requestId = req.requestId;
+    console.error(`[${requestId}] Error retrieving product:`, error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Failed to retrieve product';
     const response: ApiResponse<null> = {
       success: false,
       error: {
         errorCode: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to retrieve product',
+        message: errorMessage,
       },
       timestamp: new Date().toISOString(),
       requestId,
@@ -103,8 +105,7 @@ router.get('/:id', validateProductId, async (req: Request, res: Response): Promi
  */
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const requestId = (req as any).requestId as string;
+    const requestId = req.requestId;
     const products = await productRepository.getAll();
 
     const response: ApiResponse<typeof products> = {
@@ -115,14 +116,16 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     };
 
     res.status(200).json(response);
-  } catch {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const requestId = (req as any).requestId as string;
+  } catch (error) {
+    const requestId = req.requestId;
+    console.error(`[${requestId}] Error retrieving products:`, error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Failed to retrieve products';
     const response: ApiResponse<null> = {
       success: false,
       error: {
         errorCode: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to retrieve products',
+        message: errorMessage,
       },
       timestamp: new Date().toISOString(),
       requestId,
@@ -142,8 +145,7 @@ router.put(
   validateProductUpdate,
   async (req: Request, res: Response): Promise<void> => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const requestId = (req as any).requestId as string;
+      const requestId = req.requestId;
       const { id } = req.params as { id: string };
 
       const product = await productRepository.update(id, req.body);
@@ -171,14 +173,16 @@ router.put(
       };
 
       res.status(200).json(response);
-    } catch {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const requestId = (req as any).requestId as string;
+    } catch (error) {
+      const requestId = req.requestId;
+      console.error(`[${requestId}] Error updating product:`, error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update product';
       const response: ApiResponse<null> = {
         success: false,
         error: {
           errorCode: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update product',
+          message: errorMessage,
         },
         timestamp: new Date().toISOString(),
         requestId,
@@ -195,8 +199,7 @@ router.put(
  */
 router.delete('/:id', validateProductId, async (req: Request, res: Response): Promise<void> => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const requestId = (req as any).requestId as string;
+    const requestId = req.requestId;
     const { id } = req.params as { id: string };
 
     const exists = await productRepository.exists(id);
@@ -226,14 +229,16 @@ router.delete('/:id', validateProductId, async (req: Request, res: Response): Pr
     };
 
     res.status(200).json(response);
-  } catch {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const requestId = (req as any).requestId as string;
+  } catch (error) {
+    const requestId = req.requestId;
+    console.error(`[${requestId}] Error deleting product:`, error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Failed to delete product';
     const response: ApiResponse<null> = {
       success: false,
       error: {
         errorCode: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to delete product',
+        message: errorMessage,
       },
       timestamp: new Date().toISOString(),
       requestId,

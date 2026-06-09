@@ -13,104 +13,134 @@ export interface IProductRepository {
 
 export class ProductRepository implements IProductRepository {
   async create(productData: CreateProductDTO): Promise<Product> {
-    const product = new ProductModel(
-      productData.name,
-      productData.description,
-      productData.price,
-      productData.category,
-      productData.stockQuantity,
-    );
+    try {
+      const product = new ProductModel(
+        productData.name,
+        productData.description,
+        productData.price,
+        productData.category,
+        productData.stockQuantity,
+      );
 
-    const db = getDatabase();
-    const productJson = product.toJSON() as Product;
+      const db = getDatabase();
+      const productJson = product.toJSON() as Product;
 
-    const stmt = db.prepare(`
-      INSERT INTO products (productId, name, description, price, category, stockQuantity, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `);
+      const stmt = db.prepare(`
+        INSERT INTO products (productId, name, description, price, category, stockQuantity, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
 
-    stmt.run(
-      productJson.productId,
-      productJson.name,
-      productJson.description,
-      productJson.price,
-      productJson.category,
-      productJson.stockQuantity,
-      productJson.createdAt.toISOString(),
-      productJson.updatedAt.toISOString(),
-    );
+      stmt.run(
+        productJson.productId,
+        productJson.name,
+        productJson.description,
+        productJson.price,
+        productJson.category,
+        productJson.stockQuantity,
+        productJson.createdAt.toISOString(),
+        productJson.updatedAt.toISOString(),
+      );
 
-    return productJson;
+      return productJson;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create product';
+      throw new Error(`Database error during product creation: ${message}`);
+    }
   }
 
   async getById(productId: string): Promise<Product | null> {
-    const db = getDatabase();
-    const stmt = db.prepare('SELECT * FROM products WHERE productId = ?');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const row = stmt.get(productId) as any;
+    try {
+      const db = getDatabase();
+      const stmt = db.prepare('SELECT * FROM products WHERE productId = ?');
+      const row = stmt.get(productId) as unknown;
 
-    if (!row) {
-      return null;
+      if (!row) {
+        return null;
+      }
+
+      return this.rowToProduct(row as Record<string, unknown>);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to retrieve product';
+      throw new Error(`Database error while retrieving product: ${message}`);
     }
-
-    return this.rowToProduct(row);
   }
 
   async getAll(): Promise<Product[]> {
-    const db = getDatabase();
-    const stmt = db.prepare('SELECT * FROM products');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rows = stmt.all() as any[];
+    try {
+      const db = getDatabase();
+      const stmt = db.prepare('SELECT * FROM products');
+      const rows = stmt.all() as unknown[];
 
-    return rows.map((row) => this.rowToProduct(row));
+      return rows.map((row) => this.rowToProduct(row as Record<string, unknown>));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to retrieve products';
+      throw new Error(`Database error while retrieving products: ${message}`);
+    }
   }
 
   async update(productId: string, productData: UpdateProductDTO): Promise<Product | null> {
-    const existingProduct = await this.getById(productId);
-    if (!existingProduct) {
-      return null;
+    try {
+      const existingProduct = await this.getById(productId);
+      if (!existingProduct) {
+        return null;
+      }
+
+      const updatedProduct: Product = {
+        ...existingProduct,
+        ...productData,
+        productId: existingProduct.productId,
+        createdAt: existingProduct.createdAt,
+        updatedAt: new Date(),
+      };
+
+      const db = getDatabase();
+      const stmt = db.prepare(`
+        UPDATE products
+        SET name = ?, description = ?, price = ?, category = ?, stockQuantity = ?, updatedAt = ?
+        WHERE productId = ?
+      `);
+
+      stmt.run(
+        updatedProduct.name,
+        updatedProduct.description,
+        updatedProduct.price,
+        updatedProduct.category,
+        updatedProduct.stockQuantity,
+        updatedProduct.updatedAt.toISOString(),
+        productId,
+      );
+
+      return updatedProduct;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update product';
+      throw new Error(`Database error during product update: ${message}`);
     }
-
-    const updatedProduct: Product = {
-      ...existingProduct,
-      ...productData,
-      productId: existingProduct.productId,
-      createdAt: existingProduct.createdAt,
-      updatedAt: new Date(),
-    };
-
-    const db = getDatabase();
-    const stmt = db.prepare(`
-      UPDATE products
-      SET name = ?, description = ?, price = ?, category = ?, stockQuantity = ?, updatedAt = ?
-      WHERE productId = ?
-    `);
-
-    stmt.run(
-      updatedProduct.name,
-      updatedProduct.description,
-      updatedProduct.price,
-      updatedProduct.category,
-      updatedProduct.stockQuantity,
-      updatedProduct.updatedAt.toISOString(),
-      productId,
-    );
-
-    return updatedProduct;
   }
 
   async delete(productId: string): Promise<boolean> {
-    const db = getDatabase();
-    const stmt = db.prepare('DELETE FROM products WHERE productId = ?');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = stmt.run(productId) as any;
+    try {
+      const db = getDatabase();
+      const stmt = db.prepare('DELETE FROM products WHERE productId = ?');
+      const result = stmt.run(productId) as unknown;
 
-    return result.changes > 0;
+      if (typeof result === 'object' && result !== null && 'changes' in result) {
+        return (result as { changes: number }).changes > 0;
+      }
+      return false;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete product';
+      throw new Error(`Database error during product deletion: ${message}`);
+    }
   }
 
   async exists(productId: string): Promise<boolean> {
-    const product = await this.getById(productId);
-    return product !== null;
+    try {
+      const product = await this.getById(productId);
+      return product !== null;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to check product existence';
+      throw new Error(`Database error checking product existence: ${message}`);
+    }
   }
 
   private rowToProduct(row: Record<string, unknown>): Product {
