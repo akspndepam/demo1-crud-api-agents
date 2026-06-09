@@ -1,4 +1,7 @@
 import app from './app';
+import { initializeDatabase, closeDatabase } from './config/database';
+
+initializeDatabase();
 
 const PORT = process.env.PORT || 3000;
 
@@ -11,6 +14,7 @@ const server = app.listen(PORT, (): void => {
 process.on('SIGTERM', (): void => {
   console.log('SIGTERM signal received: closing HTTP server');
   server.close((): void => {
+    closeDatabase();
     console.log('HTTP server closed');
     process.exit(0);
   });
@@ -19,6 +23,7 @@ process.on('SIGTERM', (): void => {
 process.on('SIGINT', (): void => {
   console.log('SIGINT signal received: closing HTTP server');
   server.close((): void => {
+    closeDatabase();
     console.log('HTTP server closed');
     process.exit(0);
   });

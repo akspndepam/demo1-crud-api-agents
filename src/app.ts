@@ -44,22 +44,20 @@ app.use((req: Request, res: Response): void => {
 });
 
 // Error handler
-app.use(
-  (err: Error, req: Request, res: Response, _next: NextFunction): void => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const requestId = (req as any).requestId as string;
-    const response: ApiResponse<null> = {
-      success: false,
-      error: {
-        errorCode: 'INTERNAL_SERVER_ERROR',
-        message: err.message || 'Internal server error',
-      },
-      timestamp: new Date().toISOString(),
-      requestId,
-    };
+app.use((err: Error, req: Request, res: Response, _next: NextFunction): void => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const requestId = (req as any).requestId as string;
+  const response: ApiResponse<null> = {
+    success: false,
+    error: {
+      errorCode: 'INTERNAL_SERVER_ERROR',
+      message: err.message || 'Internal server error',
+    },
+    timestamp: new Date().toISOString(),
+    requestId,
+  };
 
-    res.status(500).json(response);
-  },
-);
+  res.status(500).json(response);
+});
 
 export default app;

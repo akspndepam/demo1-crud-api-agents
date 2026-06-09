@@ -68,6 +68,12 @@ pnpm-lock.yaml
 
 # IDE temporary files
 .vscode-test
+
+# SQLite database
+data/
+*.db
+*.db-shm
+*.db-wal
 .vscode
 .history
 

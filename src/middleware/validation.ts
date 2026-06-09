@@ -4,11 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const generateRequestId = (): string => uuidv4();
 
-export const validateProductCreation = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void => {
+export const validateProductCreation = (req: Request, res: Response, next: NextFunction): void => {
   const { name, description, price, category, stockQuantity } = req.body;
   const errors: string[] = [];
 
@@ -54,11 +50,7 @@ export const validateProductCreation = (
   next();
 };
 
-export const validateProductUpdate = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void => {
+export const validateProductUpdate = (req: Request, res: Response, next: NextFunction): void => {
   const { name, description, price, category, stockQuantity } = req.body;
   const errors: string[] = [];
 
@@ -110,11 +102,7 @@ export const validateProductUpdate = (
   next();
 };
 
-export const validateProductId = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void => {
+export const validateProductId = (req: Request, res: Response, next: NextFunction): void => {
   const { id } = req.params;
 
   if (!id || typeof id !== 'string' || id.trim().length === 0) {
@@ -136,11 +124,7 @@ export const validateProductId = (
   next();
 };
 
-export const attachRequestId = (
-  req: Request,
-  _res: Response,
-  next: NextFunction,
-): void => {
+export const attachRequestId = (req: Request, _res: Response, next: NextFunction): void => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (req as any).requestId = generateRequestId();
   next();

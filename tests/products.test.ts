@@ -1,9 +1,18 @@
 import request from 'supertest';
 import app from '../src/app';
 import { ProductRepository } from '../src/dal/ProductRepository';
-import { describe, it, beforeEach, expect } from '@jest/globals';
+import { initializeDatabase, closeDatabase } from '../src/config/database';
+import { describe, it, beforeEach, beforeAll, afterAll, expect } from '@jest/globals';
 
 describe('Product CRUD API', (): void => {
+  beforeAll((): void => {
+    initializeDatabase();
+  });
+
+  afterAll((): void => {
+    closeDatabase();
+  });
+
   beforeEach((): void => {
     ProductRepository.resetData();
   });
